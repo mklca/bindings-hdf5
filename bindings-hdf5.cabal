@@ -79,5 +79,6 @@ Library
                         transformers,
                         vector
 
-  include-dirs:         include
-  pkgconfig-depends:    hdf5
+  include-dirs:         include, /usr/local/include
+  extra-lib-dirs:         /usr/local/lib
+  extra-libraries:      hdf5
