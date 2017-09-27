@@ -160,6 +160,19 @@ withOutByteString f = do
 
         liftIO (BS.packCStringLen (buf, fromIntegral sz))
 
+-- | Variant of withOutByteString which expects the discovered length to be one byte less than
+--   the required buffer size.  As required for H5Fget_name
+withOutByteString' :: (MonadBaseControl IO m, MonadIO m, Integral a, Integral b) => (OutArray CChar -> a -> m b) -> m BS.ByteString
+withOutByteString' f = do
+    bufSz <- f nullWrappedPtr 0
+    -- bufSz should be 1 minus the length of the buffer which needs allocating
+    let bufSz' = bufSz + 1
+
+    bracket (liftIO (mallocBytes (fromIntegral bufSz'))) (liftIO . free) $ \buf -> do
+        sz <- f (OutArray buf) (fromIntegral bufSz')
+
+        liftIO (BS.packCStringLen (buf, fromIntegral sz))
+
 
 -- * Bidirectional pointers
 
