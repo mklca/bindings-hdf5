@@ -165,7 +165,7 @@ import Foreign.Ptr.Conventions
 #if H5_VERSION_GE(1,8,6)
     
 -- |Use version 1.8 format for storing objects
-#newtype_const H5F_libver_t, H5F_LIBVER_18
+#newtype_const H5F_libver_t, H5F_LIBVER_V18
 
 #endif
 
