@@ -1,4 +1,5 @@
 #include <bindings.h>
+#include <H5public.h>
 #include <H5Lpublic.h>
 
 module Bindings.HDF5.Raw.H5L where
@@ -53,8 +54,13 @@ h5l_MAX_LINK_NAME_LEN = #const H5L_MAX_LINK_NAME_LEN
 -- |Link ids at or above this value are \"user-defined\" link types.
 #newtype_const H5L_type_t, H5L_TYPE_UD_MIN
 
+#if H5_VERSION_GE(1,12,0)
+-- |Information struct for link (for 'h5l_get_info1' / 'h5l_get_info_by_idx1')
+#starttype H5L_info1_t
+#else
 -- |Information struct for link (for 'h5l_get_info' / 'h5l_get_info_by_idx')
 #starttype H5L_info_t
+#endif
 
 -- |Type of link
 #field type,                <H5L_type_t>
@@ -75,6 +81,31 @@ h5l_MAX_LINK_NAME_LEN = #const H5L_MAX_LINK_NAME_LEN
 #union_field u.val_size,    <size_t>
 #stoptype
 
+#if H5_VERSION_GE(1,12,0)
+-- |Information struct for link (for 'h5l_get_info2' / 'h5l_get_info_by_idx2')
+#starttype H5L_info2_t
+
+-- |Type of link
+#field type,                <H5L_type_t>
+
+-- |Indicate if creation order is valid
+#field corder_valid,        <hbool_t>
+
+-- |Creation order
+#field corder,              Int64
+
+-- |Character set of link name
+#field cset,                <H5T_cset_t>
+
+-- |The linked object within the file
+#union_field u.token,       <H5O_token_t>
+
+-- |Size of a soft link or UD link value
+#union_field u.val_size,    <size_t>
+
+#stoptype
+#endif
+
 
 -- /* The H5L_class_t struct can be used to override the behavior of a
 --  * "user-defined" link class. Users should populate the struct with callback
@@ -84,7 +115,7 @@ h5l_MAX_LINK_NAME_LEN = #const H5L_MAX_LINK_NAME_LEN
 -- * Callback prototypes for user-defined links
 
 -- |Link creation callback
--- 
+--
 -- > typedef herr_t (*H5L_create_func_t)(const char *link_name, hid_t loc_group,
 -- >     const void *lnkdata, size_t lnkdata_size, hid_t lcpl_id);
 type H5L_create_func_t a = FunPtr (CString -> HId_t -> Ptr a -> CSize -> HId_t -> IO HErr_t)
@@ -153,11 +184,27 @@ type H5L_query_func_t a b = FunPtr (CString -> Ptr a -> CSize -> Out b -> CSize 
 #stoptype
 
 
+#if H5_VERSION_GE(1,12,0)
+-- |Prototype for 'h5l_iterate1' / 'h5l_iterate_by_name1' operator
+--
+-- > typedef herr_t (*H5L_iterate1_t)(hid_t group, const char *name, const H5L_info1_t *info,
+-- >     void *op_data);
+type H5L_iterate1_t a = FunPtr (HId_t -> CString -> In H5L_info1_t -> InOut a -> IO HErr_t)
+#else
 -- |Prototype for 'h5l_iterate' / 'h5l_iterate_by_name' operator
--- 
+--
 -- > typedef herr_t (*H5L_iterate_t)(hid_t group, const char *name, const H5L_info_t *info,
 -- >     void *op_data);
 type H5L_iterate_t a = FunPtr (HId_t -> CString -> In H5L_info_t -> InOut a -> IO HErr_t)
+#endif
+
+#if H5_VERSION_GE(1,12,0)
+-- |Prototype for 'h5l_iterate2' / 'h5l_iterate_by_name2' operator
+--
+-- > typedef herr_t (*H5L_iterate2_t)(hid_t group, const char *name, const H5L_info2_t *info,
+-- >     void *op_data);
+type H5L_iterate2_t a = FunPtr (HId_t -> CString -> In H5L_info2_t -> InOut a -> IO HErr_t)
+#endif
 
 -- |Callback for external link traversal
 --
@@ -308,12 +355,28 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- >     char *name /*out*/, size_t size, hid_t lapl_id);
 #ccall H5Lget_name_by_idx, <hid_t> -> CString -> <H5_index_t> -> <H5_iter_order_t> -> <hsize_t> -> OutArray CChar -> <ssize_t> -> <hid_t> -> IO <ssize_t>
 
+#if H5_VERSION_GE(1,12,0)
 -- |Iterates over links in a group, with user callback routine,
 -- according to the order within an index.
 --
 -- Same pattern of behavior as 'h5g_iterate'.
 --
--- Returns the return value of the first operator that returns non-zero, 
+-- Returns the return value of the first operator that returns non-zero,
+-- or zero if all members were processed with no operator returning non-zero.
+--
+-- Returns negative if something goes wrong within the library, or the
+-- negative value returned by one of the operators.
+--
+-- > herr_t H5Literate1(hid_t grp_id, H5_index_t idx_type,
+-- >     H5_iter_order_t order, hsize_t *idx, H5L_iterate1_t op, void *op_data);
+#ccall H5Literate1, <hid_t> -> <H5_index_t> -> <H5_iter_order_t> -> InOut <hsize_t> -> H5L_iterate1_t a -> InOut a -> IO <herr_t>
+#else
+-- |Iterates over links in a group, with user callback routine,
+-- according to the order within an index.
+--
+-- Same pattern of behavior as 'h5g_iterate'.
+--
+-- Returns the return value of the first operator that returns non-zero,
 -- or zero if all members were processed with no operator returning non-zero.
 --
 -- Returns negative if something goes wrong within the library, or the
@@ -322,6 +385,24 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- > herr_t H5Literate(hid_t grp_id, H5_index_t idx_type,
 -- >     H5_iter_order_t order, hsize_t *idx, H5L_iterate_t op, void *op_data);
 #ccall H5Literate, <hid_t> -> <H5_index_t> -> <H5_iter_order_t> -> InOut <hsize_t> -> H5L_iterate_t a -> InOut a -> IO <herr_t>
+#endif
+
+#if H5_VERSION_GE(1,12,0)
+-- |Iterates over links in a group, with user callback routine,
+-- according to the order within an index.
+--
+-- Same pattern of behavior as 'h5g_iterate'.
+--
+-- Returns the return value of the first operator that returns non-zero,
+-- or zero if all members were processed with no operator returning non-zero.
+--
+-- Returns negative if something goes wrong within the library, or the
+-- negative value returned by one of the operators.
+--
+-- > herr_t H5Literate2(hid_t grp_id, H5_index_t idx_type,
+-- >     H5_iter_order_t order, hsize_t *idx, H5L_iterate2_t op, void *op_data);
+#ccall H5Literate2, <hid_t> -> <H5_index_t> -> <H5_iter_order_t> -> InOut <hsize_t> -> H5L_iterate2_t a -> InOut a -> IO <herr_t>
+#endif
 
 -- |Iterates over links in a group, with user callback routine,
 -- according to the order within an index.

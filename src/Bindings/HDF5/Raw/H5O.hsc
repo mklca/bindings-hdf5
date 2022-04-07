@@ -151,9 +151,15 @@ import Foreign.Ptr.Conventions
 
 #endif
 
--- |Information struct for object
+#if H5_VERSION_GE(1,12,0)
+-- |Previous version of the information struct for object
+-- (for 'h5o_get_info1'/ 'h5o_get_info_by_name1' / 'h5o_get_info_by_idx1')
+#starttype H5O_info1_t
+#else
+-- |Previous version of the information struct for object
 -- (for 'h5o_get_info'/ 'h5o_get_info_by_name' / 'h5o_get_info_by_idx')
 #starttype H5O_info_t
+#endif
 
 -- |File number that object is located in
 #field fileno,          CULong
@@ -186,8 +192,6 @@ import Foreign.Ptr.Conventions
 
 -- |Object header information
 #field hdr,             <H5O_hdr_info_t>
-
-#else
 
 -- |Version number of header format in file
 #field hdr.version,      CUInt
@@ -229,12 +233,63 @@ import Foreign.Ptr.Conventions
 
 #stoptype
 
+#if H5_VERSION_GE(1,12,0)
+-- |Information struct for object
+-- (for 'h5o_get_info2'/ 'h5o_get_info_by_name2' / 'h5o_get_info_by_idx2')
+#starttype H5O_info2_t
+
+-- |File number that object is located in
+#field fileno,          CULong
+
+-- |Object token
+#field token,           <H5O_token_t>
+
+-- |Basic object type (group, dataset, etc.)
+#field type,            <H5O_type_t>
+
+-- |Reference count of object
+#field rc,              CUInt
+
+-- |Access time
+#field atime,           <time_t>
+
+-- |Modification time
+#field mtime,           <time_t>
+
+-- |Change time
+#field ctime,           <time_t>
+
+-- |Birth time
+#field btime,           <time_t>
+
+-- |# of attributes attached to object
+#field num_attrs,       <hsize_t>
+
+#stoptype
+#endif
 
 -- |Typedef for message creation indexes
 #newtype H5O_msg_crt_idx_t, Eq
 
--- |Prototype for 'h5o_visit' / 'h5o_visit_by_name' operator
+#if H5_VERSION_GE(1,12,0)
+
+-- |Prototype for 'h5o_visit1' / 'h5o_visit_by_name1' operation
+type H5O_iterate1_t a = FunPtr (HId_t -> CString -> In H5O_info1_t -> InOut a -> IO HErr_t)
+
+#else
+
+-- |Prototype for 'h5o_visit' / 'h5o_visit_by_name' operation
 type H5O_iterate_t a = FunPtr (HId_t -> CString -> In H5O_info_t -> InOut a -> IO HErr_t)
+
+#endif
+
+#if H5_VERSION_GE(1,12,0)
+
+-- |Prototype for 'h5o_visit3' / 'h5o_visit_by_name3' operation
+type H5O_iterate2_t a = FunPtr (HId_t -> CString -> In H5O_info2_t -> InOut a -> IO HErr_t)
+
+#endif
+
 
 #newtype H5O_mcdt_search_ret_t
 
@@ -330,12 +385,29 @@ type H5O_mcdt_search_cb_t a = FunPtr (InOut a -> IO H5O_mcdt_search_ret_t)
 
 #endif
 
+#if H5_VERSION_GE(1,12,0)
 -- |Retrieve information about an object.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
+-- > herr_t H5Oget_info1(hid_t loc_id, H5O_info1_t *oinfo);
+#ccall H5Oget_info1, <hid_t> -> Out <H5O_info1_t> -> IO <herr_t>
+#elif H5_VERSION_GE(1,10,0)
+-- |Retrieve information about an object.
+--
+-- Returns non-negative on success, negative on failure.
+--
+-- > herr_t H5Oget_info1(hid_t loc_id, H5O_info_t *oinfo);
+#ccall H5Oget_info1, <hid_t> -> Out <H5O_info_t> -> IO <herr_t>
+#else
+-- |Retrieve information about an object.
+--
+-- Returns non-negative on success, negative on failure.
+--
 -- > herr_t H5Oget_info(hid_t loc_id, H5O_info_t *oinfo);
 #ccall H5Oget_info, <hid_t> -> Out <H5O_info_t> -> IO <herr_t>
+#endif
+
 
 -- |Retrieve information about an object.
 -- 
@@ -527,32 +599,96 @@ type H5O_mcdt_search_cb_t a = FunPtr (InOut a -> IO H5O_mcdt_search_ret_t)
 -- >     char *comment, size_t bufsize, hid_t lapl_id);
 #ccall H5Oget_comment_by_name, <hid_t> -> CString -> OutArray CChar -> <size_t> -> <hid_t> -> IO <ssize_t>
 
+#if H5_VERSION_GE(1,12,0)
+
 -- |Recursively visit an object and all the objects reachable
 -- from it.  If the starting object is a group, all the objects
 -- linked to from that group will be visited.  Links within
 -- each group are visited according to the order within the
 -- specified index (unless the specified index does not exist for
 -- a particular group, then the "name" index is used).
--- 
+--
 -- NOTE: Soft links and user-defined links are ignored during
 -- this operation.
--- 
+--
 -- NOTE: Each _object_ reachable from the initial group will only
 -- be visited once.  If multiple hard links point to the same
 -- object, the first link to the object's path (according to the
 -- iteration index and iteration order given) will be used to in
 -- the callback about the object.
--- 
+--
 -- On success, returns the return value of the first operator that
 -- returns non-zero, or zero if all members were processed with no
 -- operator returning non-zero.
--- 
+--
 -- Returns negative if something goes wrong within the library, or
 -- the negative value returned by one of the operators.
--- 
+--
+-- > herr_t H5Ovisit1(hid_t obj_id, H5_index_t idx_type, H5_iter_order_t order,
+-- >     H5O_iterate1_t op, void *op_data);
+#ccall H5Ovisit1, <hid_t> -> <H5_index_t> -> <H5_iter_order_t> -> H5O_iterate1_t a -> InOut a -> IO <herr_t>
+
+#else
+
+-- |Recursively visit an object and all the objects reachable
+-- from it.  If the starting object is a group, all the objects
+-- linked to from that group will be visited.  Links within
+-- each group are visited according to the order within the
+-- specified index (unless the specified index does not exist for
+-- a particular group, then the "name" index is used).
+--
+-- NOTE: Soft links and user-defined links are ignored during
+-- this operation.
+--
+-- NOTE: Each _object_ reachable from the initial group will only
+-- be visited once.  If multiple hard links point to the same
+-- object, the first link to the object's path (according to the
+-- iteration index and iteration order given) will be used to in
+-- the callback about the object.
+--
+-- On success, returns the return value of the first operator that
+-- returns non-zero, or zero if all members were processed with no
+-- operator returning non-zero.
+--
+-- Returns negative if something goes wrong within the library, or
+-- the negative value returned by one of the operators.
+--
 -- > herr_t H5Ovisit(hid_t obj_id, H5_index_t idx_type, H5_iter_order_t order,
 -- >     H5O_iterate_t op, void *op_data);
 #ccall H5Ovisit, <hid_t> -> <H5_index_t> -> <H5_iter_order_t> -> H5O_iterate_t a -> InOut a -> IO <herr_t>
+
+#endif
+
+#if H5_VERSION_GE(1,12,0)
+
+-- |Recursively visit an object and all the objects reachable
+-- from it.  If the starting object is a group, all the objects
+-- linked to from that group will be visited.  Links within
+-- each group are visited according to the order within the
+-- specified index (unless the specified index does not exist for
+-- a particular group, then the "name" index is used).
+--
+-- NOTE: Soft links and user-defined links are ignored during
+-- this operation.
+--
+-- NOTE: Each _object_ reachable from the initial group will only
+-- be visited once.  If multiple hard links point to the same
+-- object, the first link to the object's path (according to the
+-- iteration index and iteration order given) will be used to in
+-- the callback about the object.
+--
+-- On success, returns the return value of the first operator that
+-- returns non-zero, or zero if all members were processed with no
+-- operator returning non-zero.
+--
+-- Returns negative if something goes wrong within the library, or
+-- the negative value returned by one of the operators.
+--
+-- > herr_t H5Ovisit3(hid_t obj_id, H5_index_t idx_type, H5_iter_order_t order,
+-- >     H5O_iterate2_t op, void *op_data);
+#ccall H5Ovisit3, <hid_t> -> <H5_index_t> -> <H5_iter_order_t> -> H5O_iterate2_t a -> InOut a -> IO <herr_t>
+
+#endif
 
 -- |Recursively visit an object and all the objects reachable
 -- from it.  If the starting object is a group, all the objects

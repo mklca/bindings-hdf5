@@ -163,6 +163,16 @@ hADDR_MAX = HAddr_t (#const HADDR_MAX)
 #field heap_size  , <hsize_t>
 #stoptype
 
+#if H5_VERSION_GE(1,12,0)
+
+-- |Type for object tokens
+--
+-- Added in 1.12
+#starttype H5O_token_t
+#stoptype
+
+#endif
+
 -- *Functions in H5.c
 
 -- |Initialize the library.  This is normally called automatically, but if you

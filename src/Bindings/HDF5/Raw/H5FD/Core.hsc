@@ -1,4 +1,5 @@
 #include <bindings.h>
+#include <H5FDpublic.h>
 #include <H5FDcore.h>
 
 -- |A driver which stores the HDF5 data in main memory using

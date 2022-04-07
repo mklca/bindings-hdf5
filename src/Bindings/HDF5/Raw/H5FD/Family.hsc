@@ -1,4 +1,5 @@
 #include <bindings.h>
+#include <H5FDpublic.h>
 #include <H5FDfamily.h>
 
 -- |Implements a family of files that acts as a single hdf5

@@ -37,8 +37,14 @@ import Foreign.Ptr.Conventions
 -- |type ID for Attribute objects
 #newtype_const H5I_type_t, H5I_ATTR
 
+#if !H5_VERSION_GE(1,12,0)
+
 -- |type ID for Reference objects
+--
+-- Removed in Version 1.12.
 #newtype_const H5I_type_t, H5I_REFERENCE
+
+#endif
 
 -- |type ID for virtual file layer
 #newtype_const H5I_type_t, H5I_VFL
@@ -63,8 +69,14 @@ import Foreign.Ptr.Conventions
 
 -- TODO: I think HId_t should be parameterised over the element type and 
 -- possibly also dimensionality of the dataset
+
+#if H5_VERSION_GE(1,10,0)
+-- |Type of atoms to return to users
+newtype HId_t = HId_t Int64 deriving (Storable, Eq, Ord)
+#else
 -- |Type of atoms to return to users
 newtype HId_t = HId_t Int32 deriving (Storable, Eq, Ord)
+#endif
 
 instance Show HId_t where
     showsPrec p (HId_t x) = showParen (p>10)

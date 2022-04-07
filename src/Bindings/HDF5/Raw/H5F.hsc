@@ -108,19 +108,59 @@ import Foreign.Ptr.Conventions
 -- |if there are opened objects, close them first, then close file
 #newtype_const H5F_close_degree_t, H5F_CLOSE_STRONG
 
+#if H5_VERSION_GE(1,10,0)
 -- |Current "global" information about file 
--- (just size info currently)
+--
+-- Just size info currently.
+--
+-- Renamed from `H5F_info_t` starting in HDF5 1.10.
+--
+#starttype H5F_info1_t
+#else
 #starttype H5F_info_t
+#endif
 
 -- |Superblock extension size
-#field super_ext_size,  <hsize_t>
+#field super_ext_size,        <hsize_t>
 
 -- |Shared object header message header size
-#field sohm.hdr_size,   <hsize_t>
+#field sohm.hdr_size,         <hsize_t>
 
 -- |Shared object header message index & heap size
-#field sohm.msgs_info,  <H5_ih_info_t>
+#field sohm.msgs_info,        <H5_ih_info_t>
+
 #stoptype
+
+#if H5_VERSION_GE(1,10,0)
+-- |Current "global" information about file
+#starttype H5F_info2_t
+
+-- |Superblock version number
+#field super.version,         CUInt
+
+-- |Superblock size
+#field super.super_size,      <hsize_t>
+
+-- |Superblock extension size
+#field super.super_ext_size,  <hsize_t>
+
+-- |Freespace version number
+#field free.version,          CUInt
+
+#field free.meta_size,        <hsize_t>
+
+#field free.tot_space,        <hsize_t>
+
+-- |Shared Object Header Management Version
+#field sohm.version,          CUInt
+
+#field sohm.hdr_size,         <hsize_t>
+
+#field sohm.msgs_info,        <H5_ih_info_t>
+
+#stoptype
+
+#endif
 
 #if H5_VERSION_GE(1,8,4)
 
@@ -460,16 +500,39 @@ import Foreign.Ptr.Conventions
 -- > ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size);
 #ccall H5Fget_name, <hid_t> -> OutArray CChar -> <size_t> -> IO <ssize_t>
 
+#if H5_VERSION_GE(1,10,0)
 -- |#. Get storage size for superblock extension if there is one
--- 
+--
 --  #. Get the amount of btree and heap storage for entries in the SOHM table if there is one.
--- 
+--
+--  #. Consider success when there is no superblock extension and/or SOHM table
+--
+-- Returns non-negative on success, negative on failure
+--
+-- > herr_t H5Fget_info1(hid_t obj_id, H5F_info1_t *bh_info);
+#ccall H5Fget_info1, <hid_t> -> Out H5F_info1_t -> IO <herr_t>
+#else
+-- |#. Get storage size for superblock extension if there is one
+--
+--  #. Get the amount of btree and heap storage for entries in the SOHM table if there is one.
+--
 --  #. Consider success when there is no superblock extension and/or SOHM table
 --
 -- Returns non-negative on success, negative on failure
 --
 -- > herr_t H5Fget_info(hid_t obj_id, H5F_info_t *bh_info);
 #ccall H5Fget_info, <hid_t> -> Out H5F_info_t -> IO <herr_t>
+#endif
+
+#if H5_VERSION_GE(1,10,0)
+-- | Returns the global information for the file associated with the
+-- identifier in the `H5F_info2_t` format.
+--
+-- Returns non-negative on success, negative on failure
+--
+-- > herr_t H5Fget_info2(hid_t obj_id, H5F_info2_t *bh_info);
+#ccall H5Fget_info2, <hid_t> -> Out H5F_info2_t -> IO <herr_t>
+#endif
 
 #if H5_VERSION_GE(1,8,7)
 -- |Releases the external file cache associated with the

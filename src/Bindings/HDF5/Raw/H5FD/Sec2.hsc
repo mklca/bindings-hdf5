@@ -1,4 +1,5 @@
 #include <bindings.h>
+#include <H5FDpublic.h>
 #include <H5FDcore.h>
 
 -- |The POSIX unbuffered file driver using only the HDF5 public

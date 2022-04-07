@@ -1,4 +1,5 @@
 #include <bindings.h>
+#include <H5FDpublic.h>
 #include <H5FDcore.h>
 
 module Bindings.HDF5.Raw.H5FD.StdIO where

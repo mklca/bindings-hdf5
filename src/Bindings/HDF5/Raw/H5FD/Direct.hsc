@@ -1,4 +1,5 @@
 #include <bindings.h>
+#include <H5FDpublic.h>
 #include <H5FDcore.h>
 
 -- |The Direct I/O file driver forces the data to be written to
