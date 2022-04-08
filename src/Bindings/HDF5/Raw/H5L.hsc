@@ -332,22 +332,64 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- > htri_t H5Lexists(hid_t loc_id, const char *name, hid_t lapl_id);
 #ccall H5Lexists, <hid_t> -> CString -> <hid_t> -> IO <htri_t>
 
+#if H5_VERSION_GE(1,12,0)
 -- |Gets metadata for a link.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
+-- > herr_t H5Lget_info1(hid_t loc_id, const char *name,
+-- >     H5L_info1_t *linfo /*out*/, hid_t lapl_id);
+#ccall H5Lget_info1, <hid_t> -> CString -> Out <H5L_info1_t> -> <hid_t> -> IO <herr_t>
+#else
+-- |Gets metadata for a link.
+--
+-- Returns non-negative on success, negative on failure.
+--
 -- > herr_t H5Lget_info(hid_t loc_id, const char *name,
 -- >     H5L_info_t *linfo /*out*/, hid_t lapl_id);
 #ccall H5Lget_info, <hid_t> -> CString -> Out <H5L_info_t> -> <hid_t> -> IO <herr_t>
+#endif
 
--- |Gets metadata for a link, according to the order within an index.
--- 
+#if H5_VERSION_GE(1,12,0)
+-- |Gets metadata for a link.
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
+-- > herr_t H5Lget_info2(hid_t loc_id, const char *name,
+-- >     H5L_info2_t *linfo /*out*/, hid_t lapl_id);
+#ccall H5Lget_info2, <hid_t> -> CString -> Out <H5L_info2_t> -> <hid_t> -> IO <herr_t>
+#endif
+
+#if H5_VERSION_GE(1,12,0)
+-- |Gets metadata for a link, according to the order within an index.
+--
+-- Returns non-negative on success, negative on failure.
+--
+-- > herr_t H5Lget_info_by_idx1(hid_t loc_id, const char *group_name,
+-- >     H5_index_t idx_type, H5_iter_order_t order, hsize_t n,
+-- >     H5L_info1_t *linfo /*out*/, hid_t lapl_id);
+#ccall H5Lget_info_by_idx1, <hid_t> -> CString -> <H5_index_t> -> <H5_iter_order_t> -> <hsize_t> -> Out <H5L_info1_t> -> <hid_t> -> IO <herr_t>
+#else
+-- |Gets metadata for a link, according to the order within an index.
+--
+-- Returns non-negative on success, negative on failure.
+--
 -- > herr_t H5Lget_info_by_idx(hid_t loc_id, const char *group_name,
 -- >     H5_index_t idx_type, H5_iter_order_t order, hsize_t n,
 -- >     H5L_info_t *linfo /*out*/, hid_t lapl_id);
 #ccall H5Lget_info_by_idx, <hid_t> -> CString -> <H5_index_t> -> <H5_iter_order_t> -> <hsize_t> -> Out <H5L_info_t> -> <hid_t> -> IO <herr_t>
+#endif
+
+#if H5_VERSION_GE(1,12,0)
+-- |Gets metadata for a link, according to the order within an index.
+--
+-- Returns non-negative on success, negative on failure.
+--
+-- > herr_t H5Lget_info_by_idx2(hid_t loc_id, const char *group_name,
+-- >     H5_index_t idx_type, H5_iter_order_t order, hsize_t n,
+-- >     H5L_info2_t *linfo /*out*/, hid_t lapl_id);
+#ccall H5Lget_info_by_idx2, <hid_t> -> CString -> <H5_index_t> -> <H5_iter_order_t> -> <hsize_t> -> Out <H5L_info2_t> -> <hid_t> -> IO <herr_t>
+#endif
 
 -- |Gets name for a link, according to the order within an index.
 --
