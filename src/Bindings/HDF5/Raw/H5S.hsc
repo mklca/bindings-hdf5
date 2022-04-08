@@ -158,17 +158,44 @@ import Foreign.Ptr.Conventions
 -- > herr_t H5Sclose(hid_t space_id);
 #ccall H5Sclose, <hid_t> -> IO <herr_t>
 
+#if H5_VERSION_GE(1,12,0)
 -- |Given a dataspace ID, converts the object description
 -- (including selection) into binary in a buffer.
--- 
+--
 -- 'nalloc' is the size of the buffer on input, the size of the encoded
 -- data on output.  If the buffer is not big enough, no data is written
 -- to it (but nalloc is still updated with the size needed).
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
+-- > herr_t H5Sencode1(hid_t obj_id, void *buf, size_t *nalloc);
+#ccall H5Sencode1, <hid_t> -> OutArray CChar -> InOut <size_t> -> IO <herr_t>
+#else
+-- |Given a dataspace ID, converts the object description
+-- (including selection) into binary in a buffer.
+--
+-- 'nalloc' is the size of the buffer on input, the size of the encoded
+-- data on output.  If the buffer is not big enough, no data is written
+-- to it (but nalloc is still updated with the size needed).
+--
+-- Returns non-negative on success, negative on failure.
+--
 -- > herr_t H5Sencode(hid_t obj_id, void *buf, size_t *nalloc);
 #ccall H5Sencode, <hid_t> -> OutArray CChar -> InOut <size_t> -> IO <herr_t>
+#endif
+
+#if H5_VERSION_GE(1,12,0)
+-- |Encodes a data space object description into a binary buffer
+--
+-- > herr_t H5Sencode2 ( hid_t obj_id,  void *buf, size_t *nalloc,  hid_t fapl_id )
+--
+-- Introduced in 1.12
+#ccall H5Sencode2, <hid_t> -> OutArray CChar -> InOut <size_t> -> <hid_t> -> IO <herr_t>
+#endif
+
+#if H5_VERSION_GE(1,12,0)
+h5s_encode = h5s_encode2
+#endif
 
 -- |Decode a binary object description of dataspace and
 -- return a new object handle.
