@@ -162,6 +162,14 @@ import Foreign.Ptr.Conventions
 
 #endif
 
+#if H5_VERSION_GE(1,12,0)
+-- |Compatibility alias pointing at the current version of the structure
+type H5F_info_t = H5F_info2_t
+#elif H5_VERSION_GE(1,10,0)
+-- |Compatibility alias pointing at the current version of the structure
+type H5F_info_t = H5F_info1_t
+#endif
+
 #if H5_VERSION_GE(1,8,4)
 
 -- |Types of allocation requests. The values larger than 'h5fd_MEM_DEFAULT'
