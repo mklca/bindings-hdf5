@@ -106,6 +106,13 @@ h5l_MAX_LINK_NAME_LEN = #const H5L_MAX_LINK_NAME_LEN
 #stoptype
 #endif
 
+#if H5_VERSION_GE(1,12,0)
+-- |Compatibility alias pointing at the current version of the structure
+type H5L_info_t = H5L_info2_t
+#elif H5_VERSION_GE(1,10,0)
+-- |Compatibility alias pointing at the current version of the structure
+type H5L_info_t = H5L_info1_t
+#endif
 
 -- /* The H5L_class_t struct can be used to override the behavior of a
 --  * "user-defined" link class. Users should populate the struct with callback
