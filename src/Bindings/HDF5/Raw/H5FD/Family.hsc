@@ -34,10 +34,14 @@ import Foreign.Ptr.Conventions
 -- > hid_t H5FD_family_init(void);
 #ccall H5FD_family_init, IO <hid_t>
 
+#if !H5_VERSION_GE(1,10,0)
 -- |Shut down the VFD.
 -- 
 -- > void H5FD_family_term(void);
+--
+-- Removed in 1.10
 #ccall H5FD_family_term, IO ()
+#endif
 
 -- |Sets the file access property list 'fapl_id' to use the family
 -- driver. The 'memb_size' is the size in bytes of each file
